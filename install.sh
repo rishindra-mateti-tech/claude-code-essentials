@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # claude-code-essentials installer
 # Installs a curated, tested combination of Claude Code skills, MCP servers,
-# and CLI tools. Fetches from each tool's original source at install time —
+# and CLI tools. Fetches from each tool's original source at install time,
 # nothing is vendored, so you always get the upstream project directly.
 #
 # Usage:
@@ -48,7 +48,7 @@ fail() { printf '  \033[1;31m✗\033[0m %s\n' "$1"; }
 dry()  { printf '  \033[1;34m→ would run:\033[0m %s\n' "$1"; }
 
 run() {
-  # run <label> <command...> — tracks success/failure honestly, respects --dry-run
+  # run <label> <command...>: tracks success/failure honestly, respects --dry-run
   local label="$1"; shift
   if $DRY_RUN; then
     dry "$label: $*"
@@ -96,7 +96,7 @@ if $UNINSTALL; then
   exit 0
 fi
 
-$DRY_RUN && log "DRY RUN — nothing will be installed or modified"
+$DRY_RUN && log "DRY RUN: nothing will be installed or modified"
 
 mkdir -p "$SKILLS_DIR" "$COMMANDS_DIR"
 
@@ -123,7 +123,7 @@ if ! python3 -m pipx --version >/dev/null 2>&1 && ! python -m pipx --version >/d
       ok "pipx installed"
       python -m pipx ensurepath >/dev/null 2>&1 || python3 -m pipx ensurepath >/dev/null 2>&1 || true
     else
-      fail "pipx install failed — pipx-based tools below will be skipped"
+      fail "pipx install failed, pipx-based tools below will be skipped"
       FAILED+=("pipx")
     fi
   fi
@@ -134,7 +134,7 @@ PIPX_OK=true
 $PIPX --version >/dev/null 2>&1 || PIPX_OK=false
 
 # ---------------------------------------------------------------------------
-log "ponytail (core + review/audit/debt) — minimal-code discipline"
+log "ponytail (core + review/audit/debt): minimal-code discipline"
 if $DRY_RUN; then
   dry "clone DietrichGebert/ponytail, copy 4 skill dirs into $SKILLS_DIR"
 elif git clone --depth 1 -q https://github.com/DietrichGebert/ponytail.git "$TMP_DIR/ponytail" >/dev/null 2>&1; then
@@ -170,7 +170,7 @@ else
     for dir in "$TMP_DIR/superpowers/skills"/*/; do
       name=$(basename "$dir")
       # using-superpowers forces every other skill to auto-invoke on any
-      # 1%-relevant task — deliberately excluded to keep skills explicit-call.
+      # 1%-relevant task, deliberately excluded to keep skills explicit-call.
       [ "$name" = "using-superpowers" ] && continue
       mkdir -p "$SKILLS_DIR/$name"
       cp -r "$dir"* "$SKILLS_DIR/$name/"
@@ -192,7 +192,7 @@ fi
 # ---------------------------------------------------------------------------
 log "code-review-graph (tree-sitter code index, MCP server)"
 if ! $PIPX_OK; then
-  fail "skipped — pipx unavailable"
+  fail "skipped, pipx unavailable"
   FAILED+=("code-review-graph")
 else
   run "code-review-graph" $PIPX install code-review-graph
@@ -200,7 +200,7 @@ fi
 
 log "graphify (cross-format knowledge graph, explicit-call CLI)"
 if ! $PIPX_OK; then
-  fail "skipped — pipx unavailable"
+  fail "skipped, pipx unavailable"
   FAILED+=("graphify")
 else
   run "graphify" $PIPX install graphifyy
@@ -208,14 +208,14 @@ fi
 
 log "markitdown (file-to-markdown converter, explicit-call CLI)"
 if ! $PIPX_OK; then
-  fail "skipped — pipx unavailable"
+  fail "skipped, pipx unavailable"
   FAILED+=("markitdown")
 else
   run "markitdown" $PIPX install markitdown
 fi
 
 # ---------------------------------------------------------------------------
-log "context-mode (MCP server — auto-registered into .mcp.json below)"
+log "context-mode (MCP server, auto-registered into .mcp.json below)"
 run "context-mode" npm install -g context-mode
 
 # ---------------------------------------------------------------------------
@@ -251,7 +251,7 @@ else
   esac
   mkdir -p "$HOME/.local/bin"
   if [ -z "$RTK_URL" ]; then
-    fail "could not detect OS for rtk binary — install manually from https://github.com/rtk-ai/rtk/releases"
+    fail "could not detect OS for rtk binary, install manually from https://github.com/rtk-ai/rtk/releases"
     FAILED+=("rtk")
   elif $DRY_RUN; then
     dry "download and install rtk from $RTK_URL"
@@ -273,7 +273,7 @@ else
       ok "rtk installed to $RTK_BIN"
       SUCCEEDED+=("rtk")
       warn "Automatic hook wiring needs the standard 'claude' CLI process (not every hosted/SDK environment runs it)."
-      warn "Run 'rtk init -g' yourself from a real claude CLI terminal to enable it — see docs/TROUBLESHOOTING.md."
+      warn "Run 'rtk init -g' yourself from a real claude CLI terminal to enable it, see docs/TROUBLESHOOTING.md."
       warn "Until confirmed working, invoke $RTK_BIN <command> manually for verbose commands."
     else
       fail "rtk download/install failed"
@@ -287,7 +287,7 @@ log "Registering MCP servers for this project ($(pwd))"
 if $DRY_RUN; then
   dry "write .mcp.json in $(pwd) with code-review-graph and context-mode entries"
 elif [ -f ".mcp.json" ]; then
-  warn ".mcp.json already exists here — not overwriting. Add code-review-graph/context-mode entries manually if missing (see README)."
+  warn ".mcp.json already exists here, not overwriting. Add code-review-graph/context-mode entries manually if missing (see README)."
   SKIPPED+=("MCP registration (.mcp.json already exists)")
 else
   CRG_BIN="$(command -v code-review-graph || echo "$HOME/.local/bin/code-review-graph")"
@@ -357,7 +357,7 @@ else
   fi
   if [ "${#FAILED[@]}" -gt 0 ]; then
     echo ""
-    echo " FAILED (${#FAILED[@]}) — these did not install, do not assume they're available:"
+    echo " FAILED (${#FAILED[@]}): these did not install, do not assume they're available:"
     for i in "${FAILED[@]}"; do echo "   - $i"; done
   fi
   echo ""

@@ -15,16 +15,16 @@ markitdown, context-mode).
 The uninstaller does not touch these automatically, because they may hold
 your own edits mixed in with what this script added:
 
-**`~/.claude/CLAUDE.md`** — the two sections this script appended
+**`~/.claude/CLAUDE.md`**: the two sections this script appended
 (`## Ponytail (always use before writing code)` and
 `## Token efficiency (from claude-token-efficient)`) are clearly headed.
 Delete those two sections by hand; leave the rest of the file alone.
 
-**`.mcp.json`** in any project you ran the installer from — delete the file,
+**`.mcp.json`** in any project you ran the installer from: delete the file,
 or just remove the `code-review-graph` and `context-mode` entries if you
 added others of your own.
 
-**The rtk hook in `~/.claude/settings.json`** — if you manually added the
+**The rtk hook in `~/.claude/settings.json`**: if you manually added the
 `hooks.PreToolUse` entry for rtk (see README), remove that block by hand.
 Uninstalling the binary does not remove the hook config.
 
