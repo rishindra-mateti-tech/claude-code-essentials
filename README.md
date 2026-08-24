@@ -14,12 +14,20 @@ real alternatives, and the reasons are documented below, not just asserted.
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<you>/claude-code-essentials/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rishindra-mateti-tech/claude-code-essentials/main/install.sh | bash
 ```
 
 Run it from inside the project you want MCP servers registered for. Restart
 Claude Code afterward — skills, commands, and MCP servers load at session
 start, not mid-session.
+
+**Flags**: `--dry-run` (show what would happen, install nothing),
+`--uninstall` (remove everything, see [docs/UNINSTALL.md](docs/UNINSTALL.md)),
+`--skip-rtk`, `--skip-gsd`, `--skip-superpowers`.
+
+The script reports success and failure per component honestly — if a step
+fails, it's listed under "FAILED" at the end, not silently counted as
+installed.
 
 ## Quick example
 
