@@ -6,6 +6,15 @@ All notable changes to this project are documented here.
 
 ### Added
 
+- `taste-skill` (the `design-taste-frontend` variant), an always-on
+  anti-slop frontend/UI skill, chosen over Anthropic's official
+  `frontend-design` plugin. See `docs/COMPARISONS.md` for the full
+  evidence behind that choice. Adds `--skip-taste-skill` and a matching
+  CLAUDE.md rule scoped to frontend/UI code specifically.
+- A "tested against itself" note in the README describing what was
+  actually verified against this repo during its own development
+  (`code-review-graph` indexing it, `rtk` compressing real output, the
+  `.mcp.json` merge tested against this project's real config).
 - "Who this is for / not for" section in the README.
 - `--skip-graphify`, `--skip-markitdown`, `--skip-context-mode` flags.
 - A real, verified dry-run output example in `docs/INSTALL.md`.

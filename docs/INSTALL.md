@@ -91,6 +91,7 @@ to actually install.
 | `--skip-graphify` | Skip graphify |
 | `--skip-markitdown` | Skip markitdown |
 | `--skip-context-mode` | Skip context-mode (also excludes it from the `.mcp.json` entry) |
+| `--skip-taste-skill` | Skip taste-skill (frontend/UI design skill) |
 
 ## After install
 

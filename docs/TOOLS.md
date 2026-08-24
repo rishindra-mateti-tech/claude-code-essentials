@@ -29,6 +29,40 @@ prints a command reference card.
 self-invoke a skill when a task matches its description, which is a strong
 default but not a hard guarantee on every single edit.
 
+## taste-skill
+
+**What it does**: an anti-slop frontend/UI skill. Reads a design brief,
+infers the right design direction, and pushes generated interfaces away
+from generic AI-default patterns (predictable purple gradients, cookie
+cutter layouts, system fonts) toward something intentional. The core
+variant has three adjustable dials: design variance, motion intensity, and
+visual density.
+
+**Why chosen over Anthropic's frontend-design**: 79.8k stars vs. 33.9k
+(repo-wide, not plugin-specific), 13 skill variants vs. 1, adjustable dials
+vs. none, and it installs via `npx skills add` rather than requiring
+`/plugin` access, which this repo can't assume every environment has. Full
+breakdown in
+[COMPARISONS.md](COMPARISONS.md#taste-skill-vs-anthropic-frontend-design).
+
+**What's installed vs. skipped**: 1 of 13 variants, the core
+`design-taste-frontend` skill. The other 12 (v1 preserved, GPT/Codex
+optimized, image-to-code, redesign-existing-projects, several stylistic
+variants, image-generation skills) are not installed by default; running
+all of them as always-on would mean multiple frontend-design skills
+competing on the same task with no priority order between them. Install a
+different variant yourself with `--skill "<name>"` if the default core
+skill isn't the fit you want, in place of it rather than alongside it.
+
+**Verified during this repo's own testing**: the `skills` CLI runs a
+built-in safety scan (Gen, Socket, Snyk) before installing and reported
+"Safe, 0 alerts, Low Risk" for the `design-taste-frontend` skill at
+install time.
+
+**Activation**: self-triggering skill, same convention as ponytail, and
+reinforced the same way, a CLAUDE.md rule scoping it to frontend/UI code
+specifically so it doesn't try to weigh in on backend work.
+
 ## superpowers
 
 **What it does**: 13 skills covering test-driven development, systematic

@@ -43,6 +43,34 @@ answers against your real code). It's left uninstalled by default because
 that's a problem worth solving reactively (after you've caught a
 hallucination), not preemptively.
 
+## taste-skill vs. Anthropic frontend-design
+
+| | taste-skill | Anthropic frontend-design |
+|---|---|---|
+| GitHub stars | 79.8k | 33.9k (repo-wide `anthropics/claude-plugins-official` stat, not plugin-specific) |
+| Forks | 5.5k | 3.9k (same caveat) |
+| License | MIT | Part of Anthropic's official plugin marketplace |
+| Skill variants | 13: core (v2), v1 preserved, GPT/Codex-optimized, image-to-code, redesign-existing-projects, minimalist, brutalist, high-end-visual-design, plus image-generation skills | 1, no variants |
+| Adjustability | 3 dials (design variance, motion intensity, visual density), 1 to 10 each | None documented |
+| Install mechanism | `npx skills add`, works without `/plugin` | `/plugin install`, requires plugin marketplace access |
+| Activation | Self-triggering skill, reinforced with a CLAUDE.md rule in this repo | "Claude automatically uses this skill for frontend work," contextual only |
+| Installed by default here | Yes, `design-taste-frontend` variant only | No |
+
+**Verdict used in this repo**: taste-skill wins on every axis that matters
+for this installer's goals. More independent adoption, more variants to
+choose from if the default doesn't fit, adjustable intensity instead of a
+fixed behavior, and critically, it installs the same way everything else in
+this repo does, without needing `/plugin` access that isn't guaranteed in
+every environment. Anthropic's plugin is official and well-maintained, but
+narrower in scope and gated behind a precondition this repo is specifically
+built to avoid.
+
+Only the core `design-taste-frontend` variant installs by default, not all
+13. Running every variant as always-on would mean multiple frontend-design
+skills competing to weigh in on the same task with no priority order
+between them. See the README's "What we left out" section for the same
+reasoning applied to ponytail and superpowers.
+
 ## superpowers vs. get-shit-done vs. ruflo
 
 | | superpowers | get-shit-done | ruflo |

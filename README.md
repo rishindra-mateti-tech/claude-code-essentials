@@ -11,6 +11,17 @@ tools, installed with one script and explained with one README. Not an
 exhaustive list of everything that exists. Every tool here was picked over
 real alternatives, and the reasons are documented below, not just asserted.
 
+**Tested against itself**: this repo's own components were exercised while
+building it, not just described. `code-review-graph` indexed this exact
+repository. `rtk` was verified compressing real command output (a raw
+`pip list` at 19,520 bytes came back at 9,395 bytes through it). The
+`.mcp.json` merge logic was tested against this project's actual existing
+config, including a real `code-review-graph` entry with a custom `env`
+field, confirming nothing gets overwritten. Where something didn't work as
+expected during that testing, for example rtk's automatic hook not firing
+in every environment, it's documented as a known limitation rather than
+left out.
+
 ## Who this is for
 
 Solo developers using Claude Code who want a working, opinionated setup
@@ -59,8 +70,8 @@ start, not mid-session.
 **Flags**: `--dry-run` (show what would happen, install nothing),
 `--uninstall` (remove everything, see [docs/UNINSTALL.md](docs/UNINSTALL.md)),
 `--skip-rtk`, `--skip-gsd`, `--skip-superpowers`, `--skip-graphify`,
-`--skip-markitdown`, `--skip-context-mode`. Full list in
-[docs/INSTALL.md](docs/INSTALL.md).
+`--skip-markitdown`, `--skip-context-mode`, `--skip-taste-skill`. Full list
+in [docs/INSTALL.md](docs/INSTALL.md).
 
 The script reports success and failure per component honestly. If a step
 fails, it's listed under "FAILED" at the end, not silently counted as
@@ -99,11 +110,17 @@ runs behind your back that you didn't ask for.
 
 ![Architecture: always-on tools vs explicit-call tools](assets/architecture.jpg)
 
-The always-on three were picked specifically because each one has a real
+The always-on tools were picked specifically because each one has a real
 cost/benefit case for running unattended: ponytail only activates on code
-writes, code-review-graph only responds to queries you make anyway, rtk only
-touches bash output. Nothing in the always-on tier watches or logs anything
-beyond what a normal session already produces.
+writes, taste-skill only activates on frontend/UI writes, code-review-graph
+only responds to queries you make anyway, rtk only touches bash output.
+Nothing in the always-on tier watches or logs anything beyond what a normal
+session already produces.
+
+The diagram above predates taste-skill's addition and still shows only the
+original three always-on tools; taste-skill belongs in that same tier
+alongside ponytail. Treat the diagram as showing the shape of the split,
+not a fully current inventory.
 
 ## What gets installed, and why
 
@@ -114,6 +131,7 @@ reasoning against each alternative, see [docs/TOOLS.md](docs/TOOLS.md) and
 | Tool | Role | Chosen over | Why |
 |---|---|---|---|
 | **ponytail** (4 of 6 skills) | Minimal-code discipline, always-on | writing from scratch each time | Enforces a YAGNI decision ladder before any code is written. Self-contained, no hooks, no background cost. |
+| **taste-skill** (1 of 13 skills) | Anti-slop frontend/UI discipline, always-on for frontend work | Anthropic's `frontend-design` plugin | 79.8k stars vs. 33.9k (repo-wide, not plugin-specific). More variants, adjustable dials, and works without `/plugin` access. See comparison below. |
 | **superpowers** (13 of 14 skills) | TDD, systematic debugging, planning, explicit-call | `get-shit-done`-only workflows, `ruflo` | Anthropic-marketplace-accepted, mature. |
 | **code-review-graph** | Local code index, MCP server | `graphify`, `sigmap` | Tree-sitter plus SQLite, no LLM or embeddings needed. Claims ~65x token reduction on review questions. Narrower scope than graphify (code-only vs. code+docs+PDFs), which is exactly the fit for day-to-day review work. |
 | **graphify** | Cross-format knowledge graph (code+docs+PDF+SQL), explicit-call only | keeping it always-on | Broader scope than code-review-graph, but that breadth means redundant indexing if run alongside it. Installed dormant: invoke by name only when a task is genuinely cross-format. |
@@ -143,6 +161,17 @@ clarifying questions. That's the opposite of the explicit-call model this
 repo is built around, so it's excluded even though the other 13 skills from
 the same project are kept.
 
+**taste-skill** ships 13 skill variants: the core `design-taste-frontend`
+skill, a preserved `design-taste-frontend-v1`, a GPT/Codex-optimized
+version, image-to-code and redesign workflows, several stylistic variants
+(minimalist, brutalist, high-end-visual-design), image-generation skills,
+and more. This installs 1: the core `design-taste-frontend` variant.
+Running all 13 as always-on would mean multiple overlapping frontend-design
+skills all trying to weigh in on the same task, with no clear priority
+between them. Install a specific variant yourself
+(`npx skills add https://github.com/Leonxlnx/taste-skill --skill "<name>"`)
+if you want a different one instead of, not in addition to, the default.
+
 ## What's deliberately not installed
 
 | Tool | Why skipped |
@@ -152,12 +181,8 @@ the same project are kept.
 | `caveman`, `Paritok`, `token-reducer` (madhan230205) | Each overlaps an installed tool (context-mode or code-review-graph) with a smaller, less proven track record. |
 | `sigmap` | Genuinely useful `verify` (anti-hallucination) feature, but its indexing overlaps code-review-graph. Worth adding only if you actually hit a hallucination problem, not preemptively. |
 | Original `get-shit-done-cc` (npm) | Marked unsupported/abandoned by its own maintainer. |
-
-Design-taste skills (Anthropic's `frontend-design`, community `taste-skill`,
-or similar) are out of scope entirely rather than skipped. This repo covers
-code and token-efficiency tooling, not UI/design generation, so it makes no
-assumption about what design tooling you do or don't already have. Add one
-separately if that's what you need; it has no overlap with anything here.
+| Anthropic `frontend-design` plugin | Chose `taste-skill` instead: more variants, adjustable dials, no `/plugin` requirement. See [docs/COMPARISONS.md](docs/COMPARISONS.md#taste-skill-vs-anthropic-frontend-design) for the full breakdown. |
+| The other 12 `taste-skill` variants | Only `design-taste-frontend` installs by default; see "What we left out" above for why running all of them isn't the goal. |
 
 ## Best combinations
 
@@ -166,7 +191,7 @@ one this repo defaults to.
 
 | Combination | What's in it | Best for | Tradeoff |
 |---|---|---|---|
-| **1. Default (what this repo installs)** | ponytail, superpowers, code-review-graph, context-mode (MCP only), rtk, graphify, markitdown, get-shit-done | Solo developers, no `/plugin` access, want it working today | rtk's automatic hook needs the standard `claude` CLI process; some hosted environments won't run it (see note below), leaving you on manual invocation until you have that access |
+| **1. Default (what this repo installs)** | ponytail, taste-skill, superpowers, code-review-graph, context-mode (MCP only), rtk, graphify, markitdown, get-shit-done | Solo developers, no `/plugin` access, want it working today | rtk's automatic hook needs the standard `claude` CLI process; some hosted environments won't run it (see note below), leaving you on manual invocation until you have that access |
 | **2. Token-max** | Same as default, but swap rtk for token-optimizer, and wire context-mode's Bash/Read/Grep/WebFetch hooks fully | Anyone with confirmed `/plugin` access who wants the broadest possible token coverage | token-optimizer's biggest savings numbers are self-reported and unaudited; only a smaller subset is independently metered. More hook surface also means more that can silently misfire |
 | **3. Team / verified** | Default plus sigmap (for `sigmap verify`, catching hallucinated file or symbol references) | Teams or anyone burned by an AI assistant inventing a file/function that doesn't exist | Redundant indexing with code-review-graph for the base "answer questions about my code" job; you're paying disk and build time twice for the 80% both tools already do |
 
@@ -214,10 +239,11 @@ manually for large-output commands.
 
 ## What "install" actually touches
 
-- `~/.claude/skills/`: ponytail (4 of 6), superpowers (13 of 14)
+- `~/.claude/skills/`: ponytail (4 of 6), taste-skill (1 of 13), superpowers (13 of 14)
 - `~/.claude/commands/gsd/`: 31 command files
 - `~/.claude/get-shit-done/`: supporting workflows/templates/bin
-- `~/.claude/CLAUDE.md`: appends two rule sections, does not overwrite
+- `~/.claude/CLAUDE.md`: appends rule sections (ponytail, taste-skill,
+  token-efficiency), does not overwrite existing content
 - `~/.local/bin/`: rtk binary
 - pipx-isolated venvs: code-review-graph, graphify, markitdown (no shared
   dependencies with your other Python projects, deliberately, see the note

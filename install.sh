@@ -14,6 +14,7 @@
 #   install.sh --skip-graphify      skip graphify
 #   install.sh --skip-markitdown    skip markitdown
 #   install.sh --skip-context-mode  skip context-mode
+#   install.sh --skip-taste-skill   skip taste-skill (frontend design)
 set -uo pipefail
 
 CLAUDE_DIR="$HOME/.claude"
@@ -31,6 +32,7 @@ SKIP_SUPERPOWERS=false
 SKIP_GRAPHIFY=false
 SKIP_MARKITDOWN=false
 SKIP_CONTEXT_MODE=false
+SKIP_TASTE_SKILL=false
 
 for arg in "$@"; do
   case "$arg" in
@@ -42,6 +44,7 @@ for arg in "$@"; do
     --skip-graphify) SKIP_GRAPHIFY=true ;;
     --skip-markitdown) SKIP_MARKITDOWN=true ;;
     --skip-context-mode) SKIP_CONTEXT_MODE=true ;;
+    --skip-taste-skill) SKIP_TASTE_SKILL=true ;;
     *) echo "Unknown flag: $arg" >&2; exit 1 ;;
   esac
 done
@@ -79,6 +82,8 @@ if $UNINSTALL; then
   log "Uninstalling claude-code-essentials components"
   rm -rf "$SKILLS_DIR/ponytail" "$SKILLS_DIR/ponytail-review" "$SKILLS_DIR/ponytail-audit" "$SKILLS_DIR/ponytail-debt"
   ok "removed ponytail skills"
+  rm -rf "$SKILLS_DIR/design-taste-frontend"
+  ok "removed taste-skill"
   for name in brainstorming dispatching-parallel-agents executing-plans finishing-a-development-branch \
               receiving-code-review requesting-code-review subagent-driven-development systematic-debugging \
               test-driven-development using-git-worktrees verification-before-completion writing-plans writing-skills; do
@@ -165,6 +170,18 @@ elif git clone --depth 1 -q https://github.com/DietrichGebert/ponytail.git "$TMP
 else
   fail "ponytail clone failed"
   FAILED+=("ponytail")
+fi
+
+# ---------------------------------------------------------------------------
+if $SKIP_TASTE_SKILL; then
+  SKIPPED+=("taste-skill (--skip-taste-skill)")
+else
+  log "taste-skill (anti-slop frontend design skill, design-taste-frontend variant only)"
+  if $DRY_RUN; then
+    dry "npx skills add https://github.com/Leonxlnx/taste-skill --global --skill design-taste-frontend --agent claude-code"
+  else
+    run "taste-skill" npx --yes skills add https://github.com/Leonxlnx/taste-skill --global --skill "design-taste-frontend" --yes --copy --agent claude-code
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -380,7 +397,9 @@ fi
 # ---------------------------------------------------------------------------
 log "Adding standing rules to CLAUDE.md"
 if $DRY_RUN; then
-  dry "append ponytail + token-efficiency rule sections to $CLAUDE_MD (only if not already present)"
+  RULE_SECTIONS="ponytail + token-efficiency"
+  $SKIP_TASTE_SKILL || RULE_SECTIONS="ponytail + taste-skill + token-efficiency"
+  dry "append $RULE_SECTIONS rule sections to $CLAUDE_MD (only if not already present)"
 else
   touch "$CLAUDE_MD"
   if ! grep -q "ponytail skill first" "$CLAUDE_MD" 2>/dev/null; then
@@ -391,6 +410,18 @@ else
 Before writing, adding, refactoring, or fixing any code, apply the `ponytail`
 skill first. Applies by default on every coding task, not only when
 explicitly asked.
+EOF
+    if ! $SKIP_TASTE_SKILL; then
+      cat >> "$CLAUDE_MD" <<'EOF'
+
+## Taste-skill (always use before frontend/UI code)
+
+Before writing or editing any frontend, UI, or visual-design code, apply
+the `design-taste-frontend` skill first. Applies by default on frontend
+tasks specifically, not on backend/non-visual code.
+EOF
+    fi
+    cat >> "$CLAUDE_MD" <<'EOF'
 
 ## Token efficiency (from claude-token-efficient)
 
