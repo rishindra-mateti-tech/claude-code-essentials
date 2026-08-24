@@ -39,11 +39,12 @@ case, either switch to a real `claude` CLI terminal, or invoke
 
 ## `.mcp.json` already exists
 
-The installer will not overwrite an existing `.mcp.json` in the directory
-you run it from. It prints a warning and skips that step. Add the
-`code-review-graph` and `context-mode` entries from the README's
-["What install actually touches"](../README.md#what-install-actually-touches)
-section by hand.
+The installer merges into an existing `.mcp.json` rather than overwriting
+it. It only adds the `code-review-graph` and `context-mode` entries if
+they aren't already present; any other servers you have configured, and
+any custom config already under those two names, are left exactly as they
+were. If the existing file isn't valid JSON, the installer reports that
+and leaves the file untouched rather than guessing.
 
 ## Parser timeouts during `code-review-graph build`
 

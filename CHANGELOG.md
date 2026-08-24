@@ -2,6 +2,26 @@
 
 All notable changes to this project are documented here.
 
+## Unreleased
+
+### Added
+
+- "Who this is for / not for" section in the README.
+- `--skip-graphify`, `--skip-markitdown`, `--skip-context-mode` flags.
+- A real, verified dry-run output example in `docs/INSTALL.md`.
+
+### Changed
+
+- `install.sh` now merges into an existing `.mcp.json` instead of skipping
+  registration entirely when the file already exists. Only adds the
+  `code-review-graph` and `context-mode` entries if they're missing;
+  existing entries, including custom config under those same names, are
+  left untouched. Invalid existing JSON is detected and left alone rather
+  than guessed at.
+- `docs/INSTALL.md`'s dry-run example now covers the `curl | bash` case,
+  where there's no local `install.sh` to re-run with a flag.
+- `docs/TROUBLESHOOTING.md` updated to describe the new merge behavior.
+
 ## 2026-08-24
 
 ### Added

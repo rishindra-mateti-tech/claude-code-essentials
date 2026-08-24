@@ -11,6 +11,19 @@ tools, installed with one script and explained with one README. Not an
 exhaustive list of everything that exists. Every tool here was picked over
 real alternatives, and the reasons are documented below, not just asserted.
 
+## Who this is for
+
+Solo developers using Claude Code who want a working, opinionated setup
+today, without evaluating a dozen plugins themselves first. If you don't
+have `/plugin` access in your environment (some hosted or SDK-based Claude
+Code sessions don't expose it), everything here still installs, since none
+of it depends on that command.
+
+**Not a fit if**: you're coordinating a team of agents (see `ruflo` in
+[docs/COMPARISONS.md](docs/COMPARISONS.md), a better shape for that case),
+or you specifically want the broadest possible token-saving coverage over a
+proven track record (see the Token-max combination below instead).
+
 ## Trust and safety before you run this
 
 - The script fetches from each tool's original upstream source at install
@@ -45,7 +58,9 @@ start, not mid-session.
 
 **Flags**: `--dry-run` (show what would happen, install nothing),
 `--uninstall` (remove everything, see [docs/UNINSTALL.md](docs/UNINSTALL.md)),
-`--skip-rtk`, `--skip-gsd`, `--skip-superpowers`.
+`--skip-rtk`, `--skip-gsd`, `--skip-superpowers`, `--skip-graphify`,
+`--skip-markitdown`, `--skip-context-mode`. Full list in
+[docs/INSTALL.md](docs/INSTALL.md).
 
 The script reports success and failure per component honestly. If a step
 fails, it's listed under "FAILED" at the end, not silently counted as

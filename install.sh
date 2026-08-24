@@ -11,6 +11,9 @@
 #   install.sh --skip-rtk      skip rtk
 #   install.sh --skip-gsd      skip get-shit-done
 #   install.sh --skip-superpowers   skip superpowers skills
+#   install.sh --skip-graphify      skip graphify
+#   install.sh --skip-markitdown    skip markitdown
+#   install.sh --skip-context-mode  skip context-mode
 set -uo pipefail
 
 CLAUDE_DIR="$HOME/.claude"
@@ -25,6 +28,9 @@ UNINSTALL=false
 SKIP_RTK=false
 SKIP_GSD=false
 SKIP_SUPERPOWERS=false
+SKIP_GRAPHIFY=false
+SKIP_MARKITDOWN=false
+SKIP_CONTEXT_MODE=false
 
 for arg in "$@"; do
   case "$arg" in
@@ -33,6 +39,9 @@ for arg in "$@"; do
     --skip-rtk) SKIP_RTK=true ;;
     --skip-gsd) SKIP_GSD=true ;;
     --skip-superpowers) SKIP_SUPERPOWERS=true ;;
+    --skip-graphify) SKIP_GRAPHIFY=true ;;
+    --skip-markitdown) SKIP_MARKITDOWN=true ;;
+    --skip-context-mode) SKIP_CONTEXT_MODE=true ;;
     *) echo "Unknown flag: $arg" >&2; exit 1 ;;
   esac
 done
@@ -198,25 +207,37 @@ else
   run "code-review-graph" $PIPX install code-review-graph
 fi
 
-log "graphify (cross-format knowledge graph, explicit-call CLI)"
-if ! $PIPX_OK; then
-  fail "skipped, pipx unavailable"
-  FAILED+=("graphify")
+if $SKIP_GRAPHIFY; then
+  SKIPPED+=("graphify (--skip-graphify)")
 else
-  run "graphify" $PIPX install graphifyy
+  log "graphify (cross-format knowledge graph, explicit-call CLI)"
+  if ! $PIPX_OK; then
+    fail "skipped, pipx unavailable"
+    FAILED+=("graphify")
+  else
+    run "graphify" $PIPX install graphifyy
+  fi
 fi
 
-log "markitdown (file-to-markdown converter, explicit-call CLI)"
-if ! $PIPX_OK; then
-  fail "skipped, pipx unavailable"
-  FAILED+=("markitdown")
+if $SKIP_MARKITDOWN; then
+  SKIPPED+=("markitdown (--skip-markitdown)")
 else
-  run "markitdown" $PIPX install markitdown
+  log "markitdown (file-to-markdown converter, explicit-call CLI)"
+  if ! $PIPX_OK; then
+    fail "skipped, pipx unavailable"
+    FAILED+=("markitdown")
+  else
+    run "markitdown" $PIPX install markitdown
+  fi
 fi
 
 # ---------------------------------------------------------------------------
-log "context-mode (MCP server, auto-registered into .mcp.json below)"
-run "context-mode" npm install -g context-mode
+if $SKIP_CONTEXT_MODE; then
+  SKIPPED+=("context-mode (--skip-context-mode)")
+else
+  log "context-mode (MCP server, auto-registered into .mcp.json below)"
+  run "context-mode" npm install -g context-mode
+fi
 
 # ---------------------------------------------------------------------------
 if $SKIP_GSD; then
@@ -285,28 +306,75 @@ fi
 # ---------------------------------------------------------------------------
 log "Registering MCP servers for this project ($(pwd))"
 if $DRY_RUN; then
-  dry "write .mcp.json in $(pwd) with code-review-graph and context-mode entries"
-elif [ -f ".mcp.json" ]; then
-  warn ".mcp.json already exists here, not overwriting. Add code-review-graph/context-mode entries manually if missing (see README)."
-  SKIPPED+=("MCP registration (.mcp.json already exists)")
+  MCP_ENTRIES="code-review-graph"
+  $SKIP_CONTEXT_MODE || MCP_ENTRIES="code-review-graph and context-mode"
+  if [ -f ".mcp.json" ]; then
+    dry "merge $MCP_ENTRIES into existing .mcp.json (only adds missing entries, never overwrites yours)"
+  else
+    dry "create .mcp.json in $(pwd) with $MCP_ENTRIES entries"
+  fi
 else
   CRG_BIN="$(command -v code-review-graph || echo "$HOME/.local/bin/code-review-graph")"
-  cat > .mcp.json <<EOF
-{
-  "mcpServers": {
-    "code-review-graph": {
-      "command": "$CRG_BIN",
-      "args": ["serve", "--repo", "$(pwd)"]
-    },
-    "context-mode": {
-      "command": "npx",
-      "args": ["context-mode", "mcp"]
+  MERGE_RESULT="$(node -e '
+    const fs = require("fs");
+    const file = ".mcp.json";
+    let data = {};
+    let existed = fs.existsSync(file);
+    if (existed) {
+      try {
+        data = JSON.parse(fs.readFileSync(file, "utf8"));
+      } catch (e) {
+        console.log("PARSE_ERROR");
+        process.exit(1);
+      }
     }
-  }
-}
-EOF
-  ok ".mcp.json created in $(pwd)"
-  SUCCEEDED+=("MCP registration")
+    if (!data.mcpServers || typeof data.mcpServers !== "object") data.mcpServers = {};
+
+    const crgBin = process.argv[1];
+    const cwd = process.argv[2];
+    const includeContextMode = process.argv[3] === "1";
+    let added = [];
+    let kept = [];
+
+    if (!data.mcpServers["code-review-graph"]) {
+      data.mcpServers["code-review-graph"] = { command: crgBin, args: ["serve", "--repo", cwd] };
+      added.push("code-review-graph");
+    } else {
+      kept.push("code-review-graph");
+    }
+    if (includeContextMode) {
+      if (!data.mcpServers["context-mode"]) {
+        data.mcpServers["context-mode"] = { command: "npx", args: ["context-mode", "mcp"] };
+        added.push("context-mode");
+      } else {
+        kept.push("context-mode");
+      }
+    }
+
+    fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
+    console.log((existed ? "MERGED" : "CREATED") + "|" + added.join(",") + "|" + kept.join(","));
+  ' "$CRG_BIN" "$(pwd)" "$($SKIP_CONTEXT_MODE && echo 0 || echo 1)" 2>&1)"
+
+  if [[ "$MERGE_RESULT" == PARSE_ERROR* ]]; then
+    fail ".mcp.json exists but isn't valid JSON, left untouched. Add entries manually (see README)."
+    FAILED+=("MCP registration (invalid existing .mcp.json)")
+  elif [[ "$MERGE_RESULT" == CREATED* ]]; then
+    ok ".mcp.json created in $(pwd)"
+    SUCCEEDED+=("MCP registration (created)")
+  elif [[ "$MERGE_RESULT" == MERGED* ]]; then
+    ADDED_PART="$(echo "$MERGE_RESULT" | cut -d'|' -f2)"
+    KEPT_PART="$(echo "$MERGE_RESULT" | cut -d'|' -f3)"
+    if [ -n "$ADDED_PART" ]; then
+      ok ".mcp.json already existed, merged in: $ADDED_PART (your other entries untouched)"
+    fi
+    if [ -n "$KEPT_PART" ]; then
+      warn "left your existing entries as-is, already present: $KEPT_PART"
+    fi
+    SUCCEEDED+=("MCP registration (merged)")
+  else
+    fail "unexpected result merging .mcp.json: $MERGE_RESULT"
+    FAILED+=("MCP registration")
+  fi
 fi
 
 # ---------------------------------------------------------------------------
