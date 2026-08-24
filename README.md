@@ -54,12 +54,46 @@ After:
 Same conversation, same questions, fewer tokens spent getting there, and code
 that defaults to minimal instead of defaulting to written-from-scratch.
 
+## How it's structured
+
+Two tiers, on purpose. Some tools fire automatically because they're cheap
+and low-risk. Everything else stays dormant until you name it, so nothing
+runs behind your back that you didn't ask for.
+
+```mermaid
+flowchart TB
+    Install["install.sh"] --> Always
+    Install --> Explicit
+
+    subgraph Always["Always-on (fires without asking)"]
+        direction TB
+        A1["ponytail<br/>minimal-code discipline"]
+        A2["code-review-graph<br/>code index, via MCP"]
+        A3["rtk<br/>bash output compression"]
+    end
+
+    subgraph Explicit["Explicit-call only (you name it, then it runs)"]
+        direction TB
+        E1["superpowers<br/>TDD, debugging, planning"]
+        E2["get-shit-done<br/>milestone commands"]
+        E3["graphify<br/>cross-format graph"]
+        E4["markitdown<br/>file to markdown"]
+        E5["context-mode<br/>MCP tools, hooks not wired"]
+    end
+```
+
+The always-on three were picked specifically because each one has a real
+cost/benefit case for running unattended: ponytail only activates on code
+writes, code-review-graph only responds to queries you make anyway, rtk only
+touches bash output. Nothing in the always-on tier watches or logs anything
+beyond what a normal session already produces.
+
 ## What gets installed, and why
 
 | Tool | Role | Chosen over | Why |
 |---|---|---|---|
-| **ponytail** (+review/audit/debt) | Minimal-code discipline, always-on | writing from scratch each time | Enforces a YAGNI decision ladder before any code is written. Self-contained, no hooks, no background cost. |
-| **superpowers** (13 skills) | TDD, systematic debugging, planning, explicit-call | `get-shit-done`-only workflows, `ruflo` | Anthropic-marketplace-accepted, mature. Its `using-superpowers` meta-skill is deliberately excluded: it forces every skill to auto-invoke on any 1%-relevant task, which fights explicit-call control. |
+| **ponytail** (4 of 6 skills) | Minimal-code discipline, always-on | writing from scratch each time | Enforces a YAGNI decision ladder before any code is written. Self-contained, no hooks, no background cost. |
+| **superpowers** (13 of 14 skills) | TDD, systematic debugging, planning, explicit-call | `get-shit-done`-only workflows, `ruflo` | Anthropic-marketplace-accepted, mature. |
 | **code-review-graph** | Local code index, MCP server | `graphify`, `sigmap` | Tree-sitter plus SQLite, no LLM or embeddings needed. Claims ~65x token reduction on review questions. Narrower scope than graphify (code-only vs. code+docs+PDFs), which is exactly the fit for day-to-day review work. |
 | **graphify** | Cross-format knowledge graph (code+docs+PDF+SQL), explicit-call only | keeping it always-on | Broader scope than code-review-graph, but that breadth means redundant indexing if run alongside it. Installed dormant: invoke by name only when a task is genuinely cross-format. |
 | **markitdown** (Microsoft) | PDF/DOCX/PPTX to Markdown | building a custom converter | Official, low-risk, single-purpose. No overlap with anything else here. |
@@ -68,7 +102,27 @@ that defaults to minimal instead of defaulting to written-from-scratch.
 | **rtk** | Bash output compression | `Paritok`, `caveman`, `token-optimizer` | 77k+ GitHub stars, 16-tool integration, most battle-tested option in this category. See swap note below. |
 | **claude-token-efficient rules** | Response verbosity rules in CLAUDE.md | writing custom rules | 6k+ stars, single-file, zero install risk, directly additive. |
 
-## What's deliberately NOT installed
+## What we left out of the source repos, on purpose
+
+This installs the useful subset of each project, not the full repo. Two
+examples where that mattered:
+
+**ponytail** ships 6 skills total: the core skill, `ponytail-review`,
+`ponytail-audit`, `ponytail-debt`, `ponytail-gain`, and `ponytail-help`. This
+installs the first 4 and skips the last 2. `ponytail-gain` only prints a
+static benchmark scoreboard (fixed numbers from the project's own README,
+not measured from your repo). `ponytail-help` only prints a reference card.
+Neither changes any behavior, so neither earns a place in an always-on
+install.
+
+**superpowers** ships 14 skills. This installs 13 and drops
+`using-superpowers`, a meta-skill whose own instructions say to invoke any
+skill that's even 1% relevant before responding to anything, including
+clarifying questions. That's the opposite of the explicit-call model this
+repo is built around, so it's excluded even though the other 13 skills from
+the same project are kept.
+
+## What's deliberately not installed
 
 | Tool | Why skipped |
 |---|---|
@@ -77,20 +131,39 @@ that defaults to minimal instead of defaulting to written-from-scratch.
 | `caveman`, `Paritok`, `token-reducer` (madhan230205) | Each overlaps an installed tool (context-mode or code-review-graph) with a smaller, less proven track record. |
 | `sigmap` | Genuinely useful `verify` (anti-hallucination) feature, but its indexing overlaps code-review-graph. Worth adding only if you actually hit a hallucination problem, not preemptively. |
 | Original `get-shit-done-cc` (npm) | Marked unsupported/abandoned by its own maintainer. |
-| Anthropic `frontend-design`, `taste-skill` | Redundant if you already have any design-taste skill installed. Check before adding either. |
-| Paxel | Not a dev tool. A YC engagement/profiling product that uploads prompt data despite "local" claims. Out of scope entirely. |
+
+Design-taste skills (Anthropic's `frontend-design`, community `taste-skill`,
+or similar) are out of scope entirely rather than skipped. This repo covers
+code and token-efficiency tooling, not UI/design generation, so it makes no
+assumption about what design tooling you do or don't already have. Add one
+separately if that's what you need; it has no overlap with anything here.
+
+## Best combinations
+
+There isn't one right setup. Below are three, and the reasoning for which
+one this repo defaults to.
+
+| Combination | What's in it | Best for | Tradeoff |
+|---|---|---|---|
+| **1. Default (what this repo installs)** | ponytail, superpowers, code-review-graph, context-mode (MCP only), rtk, graphify, markitdown, get-shit-done | Solo developers, no `/plugin` access, want it working today | rtk's automatic hook needs the standard `claude` CLI process; some hosted environments won't run it (see note below), leaving you on manual invocation until you have that access |
+| **2. Token-max** | Same as default, but swap rtk for token-optimizer, and wire context-mode's Bash/Read/Grep/WebFetch hooks fully | Anyone with confirmed `/plugin` access who wants the broadest possible token coverage | token-optimizer's biggest savings numbers are self-reported and unaudited; only a smaller subset is independently metered. More hook surface also means more that can silently misfire |
+| **3. Team / verified** | Default plus sigmap (for `sigmap verify`, catching hallucinated file or symbol references) | Teams or anyone burned by an AI assistant inventing a file/function that doesn't exist | Redundant indexing with code-review-graph for the base "answer questions about my code" job; you're paying disk and build time twice for the 80% both tools already do |
+
+**Why this repo defaults to Combination 1**: it's the only one of the three
+that works without any precondition. It doesn't assume `/plugin` access
+(which isn't available in every Claude Code environment, including some
+hosted/SDK-based sessions), doesn't assume you've already hit a
+hallucination problem worth sigmap's overhead, and every tool in it has an
+independently proven track record rather than a projected one. It's also the
+lightest: no duplicate indexing (one code-index tool, not two), no fully
+wired hook surface (context-mode's broader hooks stay off by default), and
+nothing that requires a background service. Combinations 2 and 3 are real
+upgrades for specific situations, not corrections to the default.
 
 ## Swap options
 
-Some choices here are close calls, not settled facts. Swap freely:
-
-**rtk to token-optimizer.** token-optimizer covers rtk's bash-compression job
-plus config/skill/memory bloat and compaction survival that rtk doesn't
-touch. It's the broader tool, but its bigger savings numbers are
-self-reported/unaudited, only a smaller subset is independently metered, and
-on Windows it requires `/plugin` (not always available, e.g. inside
-SDK-hosted app sessions rather than the standalone `claude` CLI). If you have
-`/plugin` access:
+**Want token-optimizer instead of rtk?** Run this instead of the rtk step
+(needs `/plugin` access):
 
 ```
 /plugin marketplace add alexgreensh/token-optimizer
@@ -98,12 +171,14 @@ SDK-hosted app sessions rather than the standalone `claude` CLI). If you have
 ```
 
 Then remove rtk's hook entry from `~/.claude/settings.json` so they don't
-both intercept Bash at once.
+both intercept Bash at once, or run `install.sh --skip-rtk` from the start
+so rtk is never installed in the first place.
 
-**code-review-graph to sigmap.** Add sigmap alongside (not instead of)
-code-review-graph only if you specifically want its `sigmap verify` command:
-checking my answers against your actual code to catch hallucinated
-files/symbols. Running both for the base indexing job is redundant.
+**Want sigmap alongside code-review-graph?** Install it separately; this
+repo doesn't include it. Only worth adding if you specifically want
+`sigmap verify`, checking answers against your actual code to catch
+hallucinated files or symbols. Running both for the base indexing job is
+redundant, not complementary.
 
 ## Important: the rtk hook may not auto-fire everywhere
 
@@ -118,7 +193,7 @@ manually for large-output commands.
 
 ## What "install" actually touches
 
-- `~/.claude/skills/`: ponytail (+3), superpowers (13)
+- `~/.claude/skills/`: ponytail (4 of 6), superpowers (13 of 14)
 - `~/.claude/commands/gsd/`: 31 command files
 - `~/.claude/get-shit-done/`: supporting workflows/templates/bin
 - `~/.claude/CLAUDE.md`: appends two rule sections, does not overwrite
