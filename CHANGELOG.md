@@ -6,6 +6,9 @@ All notable changes to this project are documented here.
 
 ### Added
 
+- A demo GIF in the README, an animated terminal rendering of a real
+  `install.sh --dry-run` run, generated from actual captured output
+  rather than staged or scripted content.
 - `taste-skill` (the `design-taste-frontend` variant), an always-on
   anti-slop frontend/UI skill, chosen over Anthropic's official
   `frontend-design` plugin. See `docs/COMPARISONS.md` for the full

@@ -22,6 +22,13 @@ expected during that testing, for example rtk's automatic hook not firing
 in every environment, it's documented as a known limitation rather than
 left out.
 
+## Demo
+
+![Demo: running install.sh --dry-run](assets/demo.gif)
+
+Real output from an actual `--dry-run`, not staged. Trimmed to a
+representative excerpt; the full run covers all 9 tools.
+
 ## Who this is for
 
 Solo developers using Claude Code who want a working, opinionated setup
