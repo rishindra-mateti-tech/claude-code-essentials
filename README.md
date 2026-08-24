@@ -11,6 +11,28 @@ tools, installed with one script and explained with one README. Not an
 exhaustive list of everything that exists. Every tool here was picked over
 real alternatives, and the reasons are documented below, not just asserted.
 
+## Trust and safety before you run this
+
+- The script fetches from each tool's original upstream source at install
+  time. Nothing is vendored or bundled; you're always getting the real
+  project, not a copy.
+- `pipx` isolates every Python-based tool in its own environment so nothing
+  here touches your other projects' dependencies (see why below).
+- No secrets, API keys, or credentials are requested or read anywhere in
+  this script.
+- Piping `curl | bash` runs a script you haven't read yet. Standard advice
+  applies here too: open [install.sh](install.sh) and read it first, or
+  download it and run `bash install.sh` locally instead of piping directly.
+
+## Tested on
+
+- Windows: Git Bash. PowerShell is not supported for `install.sh`; run it
+  through Git Bash or WSL instead.
+- WSL, macOS, and Linux: standard bash, should work as-is.
+- Claude Code: verified in a standard `claude` CLI terminal session and in
+  at least one hosted/SDK-based desktop session. The rtk automatic hook
+  behaves differently between the two; see the note below.
+
 ## Install
 
 ```bash
@@ -60,27 +82,7 @@ Two tiers, on purpose. Some tools fire automatically because they're cheap
 and low-risk. Everything else stays dormant until you name it, so nothing
 runs behind your back that you didn't ask for.
 
-```mermaid
-flowchart TB
-    Install["install.sh"] --> Always
-    Install --> Explicit
-
-    subgraph Always["Always-on (fires without asking)"]
-        direction TB
-        A1["ponytail<br/>minimal-code discipline"]
-        A2["code-review-graph<br/>code index, via MCP"]
-        A3["rtk<br/>bash output compression"]
-    end
-
-    subgraph Explicit["Explicit-call only (you name it, then it runs)"]
-        direction TB
-        E1["superpowers<br/>TDD, debugging, planning"]
-        E2["get-shit-done<br/>milestone commands"]
-        E3["graphify<br/>cross-format graph"]
-        E4["markitdown<br/>file to markdown"]
-        E5["context-mode<br/>MCP tools, hooks not wired"]
-    end
-```
+![Architecture: always-on tools vs explicit-call tools](assets/architecture.jpg)
 
 The always-on three were picked specifically because each one has a real
 cost/benefit case for running unattended: ponytail only activates on code
