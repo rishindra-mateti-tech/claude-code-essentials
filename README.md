@@ -92,6 +92,10 @@ beyond what a normal session already produces.
 
 ## What gets installed, and why
 
+For the longer version of every row below, with metrics and the full
+reasoning against each alternative, see [docs/TOOLS.md](docs/TOOLS.md) and
+[docs/COMPARISONS.md](docs/COMPARISONS.md).
+
 | Tool | Role | Chosen over | Why |
 |---|---|---|---|
 | **ponytail** (4 of 6 skills) | Minimal-code discipline, always-on | writing from scratch each time | Enforces a YAGNI decision ladder before any code is written. Self-contained, no hooks, no background cost. |
@@ -214,6 +218,16 @@ environment, which can silently upgrade packages other projects depend on
 `starlette`, `pydantic`, and `websockets` got bumped and broke unrelated
 projects in the same environment). `pipx` gives each CLI tool its own
 isolated venv instead.
+
+## More docs
+
+- [docs/INSTALL.md](docs/INSTALL.md): platform-specific install steps
+- [docs/UNINSTALL.md](docs/UNINSTALL.md): removing everything cleanly
+- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md): common problems and fixes
+- [docs/TOOLS.md](docs/TOOLS.md): every tool, in depth
+- [docs/COMPARISONS.md](docs/COMPARISONS.md): the evidence behind each "chosen over" call
+- [SECURITY.md](SECURITY.md): what this script does, what it doesn't, how to inspect it first
+- [CHANGELOG.md](CHANGELOG.md): what changed and when
 
 ## License
 
