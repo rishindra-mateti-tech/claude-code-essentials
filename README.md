@@ -124,11 +124,6 @@ only responds to queries you make anyway, rtk only touches bash output.
 Nothing in the always-on tier watches or logs anything beyond what a normal
 session already produces.
 
-The diagram above predates taste-skill's addition and still shows only the
-original three always-on tools; taste-skill belongs in that same tier
-alongside ponytail. Treat the diagram as showing the shape of the split,
-not a fully current inventory.
-
 ## What gets installed, and why
 
 For the longer version of every row below, with metrics and the full
