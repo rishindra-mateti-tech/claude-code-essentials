@@ -1,5 +1,9 @@
 # claude-code-essentials
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-5A45FF)](https://claude.com/claude-code)
+[![Shell](https://img.shields.io/badge/install-bash-4EAA25?logo=gnu-bash&logoColor=white)](install.sh)
+
 A curated, tested combination of Claude Code skills, MCP servers, and CLI
 tools — installed with one script, explained with one README. Not an
 exhaustive list of everything that exists. Every tool here was picked over
@@ -14,6 +18,31 @@ curl -fsSL https://raw.githubusercontent.com/<you>/claude-code-essentials/main/i
 Run it from inside the project you want MCP servers registered for. Restart
 Claude Code afterward — skills, commands, and MCP servers load at session
 start, not mid-session.
+
+## Quick example
+
+Before this stack, a typical session looks like:
+
+```
+> git status
+[300+ lines of raw output flood the context]
+> "what calls this function?"
+[Claude reads 8 files manually to find out]
+```
+
+After:
+
+```
+> git status
+[rtk compresses it to a summary before it reaches context]
+> "what calls this function?"
+[code-review-graph answers from its pre-built index — no file reads]
+> [writing a new helper function]
+[ponytail checks: does this need to exist, or is it one line of stdlib?]
+```
+
+Same conversation, same questions — fewer tokens spent getting there, and
+code that defaults to minimal instead of defaulting to written-from-scratch.
 
 ## What gets installed, and why
 
