@@ -1,5 +1,7 @@
 # claude-code-essentials
 
+![Claude Code Essentials banner](assets/banner.jpg)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-5A45FF)](https://claude.com/claude-code)
 [![Shell](https://img.shields.io/badge/install-bash-4EAA25?logo=gnu-bash&logoColor=white)](install.sh)
